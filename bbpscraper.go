@@ -22,12 +22,12 @@ var (
 	summaryPath  = flag.String("summary", "", "File to write path match summary")
 	timeoutSec   = flag.Int("timeout", 15, "Timeout per request in seconds")
 	parallel     = flag.Int("parallel", 10, "Number of concurrent domain scans")
-	mmc = flag.Int("mmc", 2, "Minimum number of regex matches to consider a valid result")
+	mmc = flag.Int("mmc", 1, "Minimum number of regex matches to consider a valid result")
 	silent = flag.Bool("silent", false, "silent mode.")
 	version = flag.Bool("version", false, "Print the version of the tool and exit.")
 	verbose = flag.Bool("verbose", false, "Enable verbose output for debugging")
 
-	regexStr = `(?i)scope|Eligible Targets|reward|bounty|monetary|compensation|we offer a monetary|We offer reward|monetary reward|eligible for a reward|we award a bounty|We offer monetary rewards|security@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|bugbounty@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|bugreport@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|vulnerability@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-team@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|responsible-disclosure@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|infosec@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-alert@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|secure@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-alerts@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-notification@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|secure-report@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-incident@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-response@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|cybersecurity@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|reportabug@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-research@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-reports@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}`
+	regexStr = `(?i)scope|Eligible Targets|reward|bounty|monetary|compensation|we offer a monetary|We offer reward|monetary reward|eligible for a reward|we award a bounty|We offer monetary rewards|security@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|bugbounty@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|bugreport@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|vulnerability@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-team@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|responsible-disclosure@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|infosec@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-alert@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|secure@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-alerts@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-notification@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|secure-report@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-incident@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-response@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|cybersecurity@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|reportabug@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-research@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security-reports@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}|security.report@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}`
 )
 
 func readPaths(filename string) ([]string, error) {
@@ -53,6 +53,9 @@ func fetchAndMatch(url string, re *regexp.Regexp) ([]string, error) {
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, nil // ← Add this line
 	}
 	defer resp.Body.Close()
 
