@@ -24,12 +24,14 @@ cd bbpscraper; go install
 ## Usage
 ```
 Usage of bbpscraper:
+  -fr
+        Follow redirects (default: false)
   -mmc int
-        Minimum number of regex matches to consider a valid result (default 2)
+        Minimum number of regex matches to consider a valid result (default 1)
   -parallel int
         Number of concurrent domain scans (default 10)
   -path string
-        File with list of paths to append
+        File with list of paths to append (default "bbp-paths.txt")
   -silent
         silent mode.
   -stop int
