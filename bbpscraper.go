@@ -23,6 +23,7 @@ var (
 	timeoutSec   = flag.Int("timeout", 15, "Timeout per request in seconds")
 	parallel     = flag.Int("parallel", 10, "Number of concurrent domain scans")
 	mmc = flag.Int("mmc", 1, "Minimum number of regex matches to consider a valid result")
+	followRedirects = flag.Bool("fr", false, "Follow redirects (default: false)")
 	silent = flag.Bool("silent", false, "silent mode.")
 	version = flag.Bool("version", false, "Print the version of the tool and exit.")
 	verbose = flag.Bool("verbose", false, "Enable verbose output for debugging")
@@ -51,18 +52,23 @@ func readPaths(filename string) ([]string, error) {
 func fetchAndMatch(url string, re *regexp.Regexp) ([]string, error) {
 	client := &http.Client{
 		Timeout: time.Duration(*timeoutSec) * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse // 🚫 Prevent following redirects
-		},
 	}
+
+	if !*followRedirects {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // Don't follow redirects
+		}
+	}
+
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close() // ← Always defer after confirming err == nil
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, nil // ← Skip non-200 responses (e.g., 301, 401, etc.)
 	}
-	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
