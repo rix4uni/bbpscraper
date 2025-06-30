@@ -73,3 +73,11 @@ Output
 https://github.com/bounty/bugbounty/reward.html ["bounty", "reward", "scope"]
 https://apple.com/support/security ["bounty", "reward", "security@apple.com"]
 ```
+
+Generate `bbp-paths.txt`
+```
+cat bbp-paths.txt | egrep -v "\." | sed -E 's|[^/]$|&/|' | unew -q t.txt
+cat bbp-paths.txt | grep "\." | unew -q t.txt
+
+rm -rf bbp-paths.txt && mv t.txt bbp-paths.txt
+```

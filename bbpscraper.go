@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	pathFile     = flag.String("path", "", "File with list of paths to append")
+	pathFile     = flag.String("path", "bbp-paths.txt", "File with list of paths to append")
 	stopCount    = flag.Int("stop", 1, "Stop after N successful matches per domain (use 0 to check all paths)")
 	summaryPath  = flag.String("summary", "", "File to write path match summary")
 	timeoutSec   = flag.Int("timeout", 15, "Timeout per request in seconds")
@@ -49,13 +49,18 @@ func readPaths(filename string) ([]string, error) {
 }
 
 func fetchAndMatch(url string, re *regexp.Regexp) ([]string, error) {
-	client := &http.Client{Timeout: time.Duration(*timeoutSec) * time.Second}
+	client := &http.Client{
+		Timeout: time.Duration(*timeoutSec) * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // 🚫 Prevent following redirects
+		},
+	}
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, nil // ← Add this line
+		return nil, nil // ← Skip non-200 responses (e.g., 301, 401, etc.)
 	}
 	defer resp.Body.Close()
 
