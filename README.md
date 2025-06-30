@@ -67,3 +67,9 @@ cat alldomains.txt | httpx -duc -nc -silent | bbpscraper -path bbp-paths.txt
 ▶ Scan using sed+bbpscraper, not accurate but you can save lot of time
 cat alldomains.txt | sed 's/^/https:\/\//' | bbpscraper -path bbp-paths.txt
 ```
+
+Output
+```
+https://github.com/bounty/bugbounty/reward.html ["bounty", "reward", "scope"]
+https://apple.com/support/security ["bounty", "reward", "security@apple.com"]
+```
